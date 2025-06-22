@@ -1,17 +1,27 @@
 import React from "react";
 
-const Card = (item) => {
+const Card = ({ item }) => {
+  const imageSrc =
+    typeof item.img === "string"
+      ? item.img
+      : item.img
+      ? URL.createObjectURL(item.img)
+      : "";
+
   return (
-    <div className="card" key={item.id}>
+    <div className="card h-100">
       <div className="card-body">
-        <img src={item.img} alt="" className="w-100 rounded-1" />
+        <img
+          src={imageSrc}
+          alt={item.name}
+          className="w-100 rounded-1 mb-3"
+          style={{ height: "150px", objectFit: "contain" }}
+        />
+        <h5 className="text-center">{item.name}</h5>
       </div>
-      <div className="card-footer">
-        <h3 className="text-center">{item.name}</h3>
-        <div className="d-flex justify-content-between">
-          <p>{item.price}</p>
-          <p>{item.quantity}</p>
-        </div>
+      <div className="card-footer d-flex justify-content-between">
+        <span>${item.price}</span>
+        <span>Qty: {item.quantity}</span>
       </div>
     </div>
   );

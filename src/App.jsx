@@ -7,23 +7,22 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import {
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-  Form,
-  FormGroup,
-  Label,
-  Input,
-} from "reactstrap";
-import Card from "./components/Card";
-import Counter from "./components/Counter";
-import Players from "./components/Player";
+import { Button } from "reactstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const App = () => {
+import Card from "./components/Card";
+import Players from "./components/Player";
+import AddProductModal from "./components/modal/ProductModal";
+
+const AppContent = () => {
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const handleEditProduct = (product) => {
+    setSelectedProduct(product);
+    setNewProduct(product);
+    setModalOpen(true);
+  };
+
   const [products, setProducts] = useState([
     {
       id: 1,
@@ -32,6 +31,14 @@ const App = () => {
       sale: 10,
       quantity: 30,
       img: "./src/assets/mackbook.jpg",
+    },
+    {
+      id: 2,
+      name: "Iphone 15 Pro",
+      price: 1200,
+      sale: 5,
+      quantity: 15,
+      img: "./src/assets/iphone.jpg",
     },
   ]);
 
@@ -43,7 +50,7 @@ const App = () => {
     price: "",
     sale: "",
     quantity: "",
-    img: null, 
+    img: null,
   });
 
   const handleInputChange = (e) => {
@@ -57,38 +64,52 @@ const App = () => {
   const handleImageChange = (e) => {
     setNewProduct((prev) => ({
       ...prev,
-      img: e.target.files[0], 
+      img: e.target.files[0],
     }));
   };
 
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    const newId = products.length ? products[products.length - 1].id + 1 : 1;
-    setProducts([
-      ...products,
-      {
-        id: newId,
-        ...newProduct,
-        price: Number(newProduct.price),
-        quantity: Number(newProduct.quantity),
-        sale: Number(newProduct.sale),
-      },
-    ]);
-    setNewProduct({
-      name: "",
-      price: "",
-      sale: "",
-      quantity: "",
-      img: null,
-    });
-    toggleModal();
+  const handleDeleteProduct = (id) => {
+    setProducts(products.filter((p) => p.id !== id));
+    alert("Mahsulotni chindan ham o'chirishni xohlaysizmi?");
   };
+
+  const handleSaveProduct = (e) => {
+    e.preventDefault();
+
+    if (selectedProduct) {
+
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === selectedProduct.id
+            ? { ...selectedProduct, ...newProduct }
+            : p
+        )
+      );
+    } else {
+
+      const newId = products.length ? products[products.length - 1].id + 1 : 1;
+      setProducts([...products, { id: newId, ...newProduct }]);
+    }
+
+    // Tozalash
+    setNewProduct({ name: "", price: "", sale: "", quantity: "", img: null });
+    setSelectedProduct(null);
+    setModalOpen(false);
+  };
+
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredProducts = products.filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const location = useLocation();
 
   return (
     <div className="container mt-4">
-      <h2 className="text-center mb-4">Tekshirmoqchi bo'lgan vazifangizni tanlang</h2>
+      <h2 className="text-center mb-4">
+        Tekshirmoqchi bo'lgan vazifangizni tanlang
+      </h2>
 
       <nav className="d-flex justify-content-center gap-3 mb-4">
         <Link to="/card">
@@ -97,17 +118,30 @@ const App = () => {
         <Link to="/player">
           <Button color="success">Player</Button>
         </Link>
-        {/* <Link to="/counter">
-          <Button color="warning">Counter</Button>
-        </Link> */}
       </nav>
 
       {location.pathname === "/card" && (
-        <div className="text-center mb-3">
-          <Button color="info" onClick={toggleModal}>
-            Add Product
-          </Button>
-        </div>
+        <>
+          <div className="text-center mb-3">
+            <Button color="info" onClick={toggleModal}>
+              Add Product
+            </Button>
+          </div>
+          <div className="text-center mb-4">
+            <input
+              type="text"
+              placeholder="Mahsulot qidirish..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                width: "300px",
+                borderRadius: "6px",
+                border: "1px solid #ccc",
+              }}
+            />
+          </div>
+        </>
       )}
 
       <Routes>
@@ -116,98 +150,64 @@ const App = () => {
           path="/card"
           element={
             <div className="row">
-              {products.map((item) => (
-                <div className="col-md-4 mb-3" key={item.id}>
-                  <Card item={item} />
-                </div>
-              ))}
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((item) => (
+                  <div className="col-md-4 mb-3" key={item.id}>
+                    <Card
+                      item={item}
+                      onEdit={handleEditProduct}
+                      onDelete={handleDeleteProduct}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="text-center">Mos mahsulot topilmadi</div>
+              )}
             </div>
           }
         />
         <Route path="/player" element={<Players />} />
-        {/* <Route path="/counter" element={<Counter />} /> */}
         <Route
           path="*"
           element={<div className="text-center">Faqat 2 ta vazifa mavjud</div>}
         />
       </Routes>
 
-      <Modal isOpen={modalOpen} toggle={toggleModal}>
-        <ModalHeader toggle={toggleModal}>Add New Product</ModalHeader>
-        <Form onSubmit={handleAddProduct}>
-          <ModalBody>
-            <FormGroup>
-              <Label for="name">Name</Label>
-              <Input
-                type="text"
-                name="name"
-                id="name"
-                value={newProduct.name}
-                onChange={handleInputChange}
-                required
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label for="price">Price</Label>
-              <Input
-                type="number"
-                name="price"
-                id="price"
-                value={newProduct.price}
-                onChange={handleInputChange}
-                required
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label for="sale">Sale (%)</Label>
-              <Input
-                type="number"
-                name="sale"
-                id="sale"
-                value={newProduct.sale}
-                onChange={handleInputChange}
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label for="quantity">Quantity</Label>
-              <Input
-                type="number"
-                name="quantity"
-                id="quantity"
-                value={newProduct.quantity}
-                onChange={handleInputChange}
-                required
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label for="img">Image</Label>
-              <Input
-                type="file"
-                name="img"
-                id="img"
-                accept="image/*"
-                onChange={handleImageChange}
-              />
-            </FormGroup>
-          </ModalBody>
-          <ModalFooter>
-            <Button color="primary" type="submit">
-              Add Product
-            </Button>
-            <Button color="secondary" onClick={toggleModal}>
-              Cancel
-            </Button>
-          </ModalFooter>
-        </Form>
-      </Modal>
+      {/* Modal component */}
+      <AddProductModal
+        isOpen={modalOpen}
+        toggle={() => {
+          setModalOpen(false);
+          setSelectedProduct(null);
+        }}
+        newProduct={newProduct}
+        handleInputChange={handleInputChange}
+        handleImageChange={handleImageChange}
+        handleAddProduct={handleSaveProduct}
+        isEdit={!!selectedProduct}
+      />
     </div>
   );
 };
 
-const WrappedApp = () => (
+const App = () => (
   <Router>
-    <App />
+    <AppContent />
   </Router>
 );
 
-export default WrappedApp;
+export default App;
+
+// 23.06.2025
+// import React from "react";
+// import Users from "./components/Users";
+
+// const App = () => {
+//   return (
+//     <div>
+//       <Users />
+//     </div>
+//   );
+// };
+
+// export default App;

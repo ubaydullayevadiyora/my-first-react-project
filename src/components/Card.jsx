@@ -1,6 +1,6 @@
 import React from "react";
 
-const Card = ({ item }) => {
+const Card = ({ item, onEdit, onDelete }) => {
   const imageSrc =
     typeof item.img === "string"
       ? item.img
@@ -22,6 +22,17 @@ const Card = ({ item }) => {
       <div className="card-footer d-flex justify-content-between">
         <span>${item.price}</span>
         <span>Qty: {item.quantity}</span>
+      </div>
+      <div className="d-flex justify-content-between p-2">
+        <button className="btn btn-warning btn-sm" onClick={() => onEdit(item)}>
+          Edit
+        </button>
+        <button
+          className="btn btn-danger btn-sm"
+          onClick={() => onDelete(item.id)}
+        >
+          Delete
+        </button>
       </div>
     </div>
   );

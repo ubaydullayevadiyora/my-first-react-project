@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
 
 const Users = () => {
   const [allUsers, setAllUsers] = useState([]);
   const [users, setUsers] = useState([]);
   const [page, setPage] = useState(1);
-
-  const limit = 3;
+  const navigate = useNavigate();
+  const limit = 5;
 
   useEffect(() => {
     axios
@@ -36,6 +37,10 @@ const Users = () => {
     if (page > 1) setPage((prev) => prev - 1);
   };
 
+  const moveSingleUser = (id) => {
+    navigate(`/users/${id}`);
+  };
+
   return (
     <div className="container mt-4">
       <h3 className="text-center mb-4">Foydalanuvchilar ro'yxati</h3>
@@ -50,6 +55,7 @@ const Users = () => {
             <th>Website</th>
             <th>Company</th>
             <th>Address</th>
+            {/* <th>Actions</th> */}
           </tr>
         </thead>
         <tbody>
@@ -61,7 +67,7 @@ const Users = () => {
             </tr>
           ) : (
             users.map((user) => (
-              <tr key={user.id}>
+              <tr key={user.id} onClick={() => moveSingleUser(user.id)}>
                 <td>{user.name}</td>
                 <td>{user.username}</td>
                 <td>{user.phone}</td>
@@ -72,13 +78,18 @@ const Users = () => {
                   {user.address?.city}, {user.address?.street},{" "}
                   {user.address?.suite}
                 </td>
+                {/* <td>
+                  <Link to={`/users/${user.id}`} className="btn btn-info">
+                    visit
+                  </Link>
+                </td> */}
               </tr>
             ))
           )}
         </tbody>
       </table>
 
-      {/* Sahifalash buttons */}
+      {/* buttons */}
       <div className="d-flex justify-content-between mt-3">
         <button
           className="btn btn-secondary"
@@ -103,4 +114,3 @@ const Users = () => {
 };
 
 export default Users;
-
